@@ -1,0 +1,23 @@
+server {
+    listen 443 ssl;
+    server_name {{ domain_name }};
+
+    ssl_certificate /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ domain_name }}/privkey.pem;
+
+    location / {
+        root /var/www/html;
+        index index.html;
+    }
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/html;
+    }
+}
+
+server {
+    listen 80;
+    server_name {{ domain_name }};
+    return 301 https://$host$request_uri;
+}
+

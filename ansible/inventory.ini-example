@@ -1,0 +1,3 @@
+[web_servers]
+webserver-01 ansible_host=<public_ip> ansible_user=<username> ansible_port=22 ansible_ssh_private_key_file=./id_rsa
+

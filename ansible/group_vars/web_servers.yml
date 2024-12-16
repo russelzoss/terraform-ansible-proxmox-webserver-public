@@ -1,0 +1,12 @@
+public_ip: "{{ ansible_default_ipv4.address }}"
+
+firewall_allowed_ports_public:
+  - "{{ ansible_port }}"  # SSH
+  - 80   # HTTP
+  - 443  # HTTPS
+
+firewall_allowed_ports_private:
+  - 9000  # Dummy Service
+
+custom_ssh_port: 5022
+

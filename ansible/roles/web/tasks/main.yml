@@ -1,0 +1,63 @@
+---
+- name: Install Web Server and Certbot
+  apt:
+    name:
+      - nginx
+      - certbot
+      - python3-certbot-nginx
+    state: present
+    update_cache: yes
+
+- name: Deploy Web Index Page
+  template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+    owner: www-data
+    group: www-data
+    mode: 0644
+
+- name: Ensure Web Server is running
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+# Stage 1: Configure Nginx for temporary HTTP validation
+- name: Configure Nginx for Let's Encrypt HTTP challenge
+  template:
+    src: templates/nginx-http-challenge.conf.j2
+    dest: /etc/nginx/sites-enabled/web-server
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Reload Nginx
+
+# Obtain Let's Encrypt certificate using webroot
+- name: Obtain Let's Encrypt TLS certificate
+  command: >
+    certbot certonly --webroot --webroot-path /var/www/html
+    --non-interactive --agree-tos --email admin@{{ domain_name }}
+    -d {{ domain_name }}
+  register: certbot_result
+  changed_when: "'Certificate not yet due for renewal' not in certbot_result.stdout"
+
+# Stage 2: Reconfigure Nginx for SSL
+- name: Deploy Nginx SSL configuration
+  template:
+    src: templates/nginx-ssl.conf.j2
+    dest: /etc/nginx/sites-enabled/web-server
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Reload Nginx
+  when: certbot_result is succeeded
+
+# Test and reload Nginx
+- name: Test and reload Nginx
+  shell: nginx -t
+  notify:
+    - Reload Nginx
+  when: certbot_result is succeeded
+

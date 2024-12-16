@@ -1,0 +1,41 @@
+- name: Install UFW
+  apt:
+    name: ufw
+    state: present
+    update_cache: true
+
+- name: Allow public interface ports
+  ufw:
+    rule: allow
+    interface: "{{ public_interface }}"
+    direction: in
+    proto: tcp
+    port: "{{ item }}"
+  loop: "{{ firewall_allowed_ports_public }}"
+  loop_control:
+    label: "Public port {{ item }}"
+  tags:
+    - ufw_allow_ports
+
+- name: Allow private interface ports
+  ufw:
+    rule: allow
+    interface: "{{ private_interface }}"
+    direction: in
+    proto: tcp
+    port: "{{ item }}"
+  loop: "{{ firewall_allowed_ports_private }}"
+  loop_control:
+    label: "Private port {{ item }}"
+  tags:
+    - ufw_allow_ports
+
+- name: Deny all other traffic
+  ufw:
+    rule: deny
+    direction: in
+
+- name: Enable UFW
+  ufw:
+    state: enabled
+    policy: deny

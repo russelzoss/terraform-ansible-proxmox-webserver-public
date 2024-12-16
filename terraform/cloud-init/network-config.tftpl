@@ -1,0 +1,19 @@
+version: 2
+ethernets:
+  ens18:
+    addresses:
+      - ${private_ip}${private_subnet}
+  %{~ if public_ip != "" ~}
+  ens19:
+    addresses:
+      - ${public_ip}/32
+    routes:
+      - to: default
+        via: ${gateway}
+        on-link: true
+    nameservers:
+      addresses:
+      %{~ for ns in nameservers ~}
+        - ${ns}
+      %{~ endfor ~}
+  %{~ endif ~}

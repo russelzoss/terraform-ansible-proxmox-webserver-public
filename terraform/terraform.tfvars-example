@@ -1,0 +1,21 @@
+proxmox_endpoint           = "https://<proxmox-host>:8006/api2/json"
+proxmox_api_token_id       = "terraform@pam!<token-id>"
+proxmox_api_token_secret   = "<token-secret>"
+
+webserver_hostname         = "webserver-01"
+webserver_public_ip        = "203.0.113.10"       # Example public IP
+webserver_public_mac       = "00:50:56:00:XX:XX" # Example MAC address
+webserver_private_ip       = "10.200.16.97"
+
+gateway                    = "203.0.113.62"     # Example gateway IP
+nameservers                = ["8.8.8.8", "8.8.4.4", "1.1.1.1"] # Example DNS servers
+private_subnet             = "/29"
+
+device_hostname            = "device-01"
+device_private_ip          = "10.200.16.100"
+
+user                       = "<username>"
+ssh_keys                   = [
+    "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAvlPEb...obfuscated...N3LMrMjJKL04AUw==",
+]
+hashed_password            = "<hashed-password>"

@@ -1,0 +1,33 @@
+---
+- name: Install Fortune Mod
+  apt:
+    name: fortune-mod
+    state: present
+
+- name: Configure netcat-based dummy service
+  copy:
+    dest: /etc/systemd/system/nc-dummy.service
+    content: |
+      [Unit]
+      Description=Netcat Dummy Service 9000
+      After=network.target
+
+      [Service]
+      ExecStart=/bin/bash -c "while true; do (echo -ne \"HTTP/1.0 200 OK\r\n\r\n\"; /usr/games/fortune) | nc -l -s {{ private_ip }} -p 9000 -q0; done"
+      Restart=always
+      User=nobody
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: '0644'
+    owner: root
+    group: root
+  become: true
+
+- name: Start and enable netcat dummy service
+  systemd:
+    name: nc-dummy
+    state: started
+    enabled: true
+  become: true
+

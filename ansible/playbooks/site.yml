@@ -1,0 +1,10 @@
+- name: Configure and Secure Web Servers
+  hosts: web_servers
+  become: true
+  roles:
+    - ufw
+    - ssh
+    - web
+    - fail2ban
+    - nc-dummy
+

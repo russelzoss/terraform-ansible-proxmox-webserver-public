@@ -1,0 +1,7 @@
+[sshd]
+enabled = true
+port    = {{ ansible_ssh_port }}
+logpath = %(sshd_log)s
+backend = %(sshd_backend)s
+maxretry = 5
+bantime = 3600

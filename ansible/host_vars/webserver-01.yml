@@ -1,0 +1,4 @@
+domain_name: "{{ public_ip | regex_replace('\\.', '-', 0) }}.nip.io"
+private_ip: "10.200.16.97"
+private_interface: ens18
+public_interface: ens19

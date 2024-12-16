@@ -1,0 +1,80 @@
+- name: Install OpenSSH Server
+  apt:
+    name: openssh-server
+    state: present
+
+- name: Create SSH config directory
+  file:
+    path: /etc/ssh/sshd_config.d
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Configure SSH to use custom port
+  template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config.d/70-custom-ssh.conf
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Allow the new SSH port in the firewall
+  ufw:
+    rule: allow
+    interface: "{{ public_interface }}"
+    direction: in
+    port: "{{ custom_ssh_port }}"
+    proto: tcp
+    insert: 1
+
+- name: Restart SSH service
+  service:
+    name: ssh
+    state: restarted
+
+- name: Wait for SSH to restart
+  wait_for:
+    port: "{{ custom_ssh_port }}"
+    host: "{{ ansible_host }}"
+    state: started
+    delay: 5
+    timeout: 60
+
+- name: Remove the old SSH port from the firewall
+  ufw:
+    rule: allow
+    interface: "{{ public_interface }}"
+    direction: in
+    port: "{{ ansible_ssh_port }}"
+    proto: tcp
+    delete: yes  
+  when: ansible_ssh_port is defined and ansible_ssh_port != custom_ssh_port
+
+- name: Update Ansible SSH port dynamically
+  set_fact:
+    ansible_ssh_port: "{{ custom_ssh_port }}"
+
+- meta: reset_connection
+
+- name: Add the new SSH port to the inventory
+  add_host:
+    name: "{{ inventory_hostname }}"
+    ansible_host: "{{ ansible_host }}"
+    ansible_user: "{{ ansible_user }}"
+    ansible_port: "{{ ansible_ssh_port }}"
+    ansible_ssh_private_key_file: "{{ ansible_ssh_private_key_file }}"
+
+- name: Update inventory.ini with new SSH port
+  lineinfile:
+    path: "{{ ansible_inventory_sources | first }}"
+    regexp: '^{{ inventory_hostname }} .*ansible_port='
+    line: "{{ inventory_hostname }} ansible_host={{ ansible_host }} ansible_user={{ ansible_user }} ansible_port={{ custom_ssh_port }} ansible_ssh_private_key_file={{ ansible_ssh_private_key_file }}"
+    backrefs: yes
+  delegate_to: localhost
+  become: false
+
+- name: Debug new inventory
+  debug:
+    msg: "Updated inventory with port {{ ansible_ssh_port }} for {{ inventory_hostname }}"
+

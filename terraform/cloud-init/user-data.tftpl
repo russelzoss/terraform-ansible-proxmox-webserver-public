@@ -1,0 +1,14 @@
+#cloud-config
+hostname: ${hostname}
+manage_etc_hosts: true
+users:
+  - name: ${user}
+    ssh_authorized_keys:
+      %{~ for key in ssh_keys ~}
+      - ${key}
+      %{~ endfor ~}
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    groups: sudo
+    shell: /bin/bash
+    hashed_passwd: ${hashed_password}
+    lock_passwd: false
